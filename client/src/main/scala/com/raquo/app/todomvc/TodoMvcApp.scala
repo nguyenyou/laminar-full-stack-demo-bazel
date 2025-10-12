@@ -3,6 +3,8 @@ package com.raquo.app.todomvc
 import com.raquo.app.codesnippets.CodeSnippets
 import com.raquo.laminar.api.L.{*, given}
 import com.raquo.utils.Utils.useImport
+import io.bullet.borer.{Codec, Json}
+import io.bullet.borer.derivation.MapBasedCodecs.*
 import org.scalajs.dom
 
 import scala.scalajs.js
@@ -23,6 +25,8 @@ object TodoMvcApp {
 
   case class TodoItem(id: Int, text: String, completed: Boolean)
 
+  given Codec[TodoItem] = deriveCodec[TodoItem]
+
   sealed abstract class Filter(val name: String, val passes: TodoItem => Boolean)
 
   object ShowAll extends Filter("All", _ => true)
@@ -38,15 +42,25 @@ object TodoMvcApp {
   case class UpdateCompleted(itemId: Int, completed: Boolean) extends Command
   case class Delete(itemId: Int) extends Command
   case object DeleteCompleted extends Command
+  case object ToggleAll extends Command
 
   // --- 2. State ---
 
   // Var-s are reactive state variables suitable for both local state and redux-like global stores.
   // Laminar uses my library Airstream as its reactive layer https://github.com/raquo/Airstream
 
-  private val itemsVar = Var(List[TodoItem]())
+  private val localStorageKey = "todos-laminar"
+  private val ls = dom.window.localStorage.getItem(localStorageKey)
+  private val localStorageWriter = Observer[List[TodoItem]](onNext = items => dom.window.localStorage.setItem(localStorageKey, Json.encode(items).toUtf8String))
+
+  private val itemsVar = Var(
+    if (ls != null) Json.decode(ls.getBytes("UTF8")).to[List[TodoItem]].value else Nil
+  )
   private val filterVar = Var[Filter](ShowAll)
-  private var lastId = 1 // just for auto-incrementing IDs
+
+  private var lastId = if (itemsVar.now().isEmpty) 1 else itemsVar.now().map(_.id).max // just for auto-incrementing IDs
+
+  private def allItemsCompleted(items: List[TodoItem]) = items.nonEmpty && items.forall(_.completed)
 
   private val commandObserver = Observer[Command] {
     case Create(itemText) =>
@@ -55,7 +69,11 @@ object TodoMvcApp {
         filterVar.set(ShowAll)
       itemsVar.update(_ :+ TodoItem(id = lastId, text = itemText, completed = false))
     case UpdateText(itemId, text) =>
-      itemsVar.update(_.map(item => if (item.id == itemId) item.copy(text = text) else item))
+      val trimmedText = text.trim()
+      if (trimmedText.isEmpty)
+        itemsVar.update(_.filterNot(_.id == itemId))
+      else
+        itemsVar.update(_.map(item => if (item.id == itemId) item.copy(text = trimmedText) else item))
     case UpdateCompleted(itemId, completed) =>
       itemsVar.update(_.map(item => if (item.id == itemId) item.copy(completed = completed) else item))
     case Delete(itemId) =>
@@ -63,6 +81,8 @@ object TodoMvcApp {
     case DeleteCompleted =>
       itemsVar.update(_.filterNot(_.completed))
       filterVar.set(ShowAll)
+    case ToggleAll =>
+      itemsVar.update(items => items.map(_.copy(completed = !allItemsCompleted(items))))
   }
 
   // --- 3. Views ---
@@ -75,15 +95,16 @@ object TodoMvcApp {
     div(
       div(
         cls("todoapp-container u-bleed"),
-        div(
+        sectionTag(
           cls("todoapp"),
-          div(
+          sectionTag(
             cls("header"),
             h1("todos"),
             renderNewTodoInput,
           ),
-          div(
+          sectionTag(
             hideIfNoItems,
+            renderToggleAll,
             cls("main"),
             ul(
               cls("todo-list"),
@@ -104,13 +125,28 @@ object TodoMvcApp {
       onMountFocus,
       onEnterPress
         .mapToValue
-        .filter(_.nonEmpty)
-        .map(Create(_))
-        .setValue("") --> commandObserver,
+        .setValue("")
+        .filter(_.trim().nonEmpty)
+        .map(Create(_)) --> commandObserver,
       // When all we need is to clear an uncontrolled input, we can use setValue("")
       //  but we still need an observer to create the subscription, so we just use an empty one.
       onEscapeKeyUp.setValue("") --> Observer.empty
     )
+
+  private def renderToggleAll = List(
+    input(
+      cls("toggle-all"),
+      idAttr("toggle-all"),
+      typ("checkbox"),
+      checked <-- itemsVar.signal.map(allItemsCompleted),
+      onChange.mapTo(ToggleAll) --> commandObserver
+    ),
+    label(
+      cls("toggle-all"),
+      forId("toggle-all"),
+      "Mark all as complete"
+    )
+  )
 
   // Render a single item. Note that the result is a single element: not a stream, not some virtual DOM representation.
   private def renderTodoItem(itemId: Int, initialTodo: TodoItem, itemSignal: Signal[TodoItem]): HtmlElement = {
@@ -121,13 +157,18 @@ object TodoMvcApp {
     }
     li(
       cls <-- itemSignal.map(item => Map("completed" -> item.completed)),
+      cls("editing") <-- isEditingVar,
       onDblClick.filter(_ => !isEditingVar.now()).mapTo(true) --> isEditingVar.writer,
-      children <-- isEditingVar.signal.map[List[HtmlElement]] {
+      child <-- isEditingVar.signal.map {
         case true =>
           val cancelObserver = isEditingVar.writer.contramap[Unit](Unit => false)
-          renderTextUpdateInput(itemId, itemSignal, updateTextObserver, cancelObserver) :: Nil
+          div(
+            cls("input-container"),
+            renderTextUpdateInput(itemId, itemSignal, updateTextObserver, cancelObserver)
+          )
         case false =>
-          List(
+          div(
+            cls("view"),
             renderCheckboxInput(itemId, itemSignal),
             label(text <-- itemSignal.map(_.text)),
             button(
@@ -148,7 +189,13 @@ object TodoMvcApp {
   ) =
     input(
       cls("edit"),
+      idAttr("edit-todo-input"),
       defaultValue <-- itemSignal.map(_.text),
+      onMountFocus,
+      onMountCallback { ctx =>
+        // Place cursor at the end of the input. Apparently this is needed because we use `defaultValue` instead of `value.
+        ctx.thisNode.ref.setSelectionRange(ctx.thisNode.ref.value.length, ctx.thisNode.ref.value.length)
+      },
       onEscapeKeyUp.mapToUnit --> cancelObserver,
       onEnterPress.mapToValue.map(UpdateText(itemId, _)) --> updateTextObserver,
       onBlur.mapToValue.map(UpdateText(itemId, _)) --> updateTextObserver
@@ -164,15 +211,15 @@ object TodoMvcApp {
       } --> commandObserver
     )
 
-  private def renderStatusBar =
+  private def renderStatusBar = {
+    val countSignal = itemsVar.signal.map(_.count(!_.completed))
     footerTag(
       hideIfNoItems,
       cls("footer"),
       span(
         cls("todo-count"),
-        text <-- itemsVar.signal
-          .map(_.count(!_.completed))
-          .map(pluralize(_, "item left", "items left")),
+        strong(text <-- countSignal),
+        text <-- countSignal.map(count => pluralize(count, " item left", " items left"))
       ),
       ul(
         cls("filters"),
@@ -191,6 +238,7 @@ object TodoMvcApp {
           None
       }
     )
+  }
 
   private def renderFilterButton(filter: Filter) =
     a(
@@ -208,11 +256,11 @@ object TodoMvcApp {
   // --- Generic helpers ---
 
   private def pluralize(num: Int, singular: String, plural: String): String =
-    s"$num ${if (num == 1) singular else plural}"
+    if (num == 1) singular else plural
 
   private val onEnterPress = onKeyPress.filter(_.keyCode == dom.KeyCode.Enter)
 
-  // Non-printable characters don't get a `keypress` event in JS,
+  // Non-printable characters like "Escape" don't get a `keypress` event in JS,
   // so we need to listen to `keydown` or `keyup` instead.
   private val onEscapeKeyUp = onKeyUp.filter(_.keyCode == dom.KeyCode.Escape)
 }
