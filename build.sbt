@@ -1,5 +1,5 @@
 import com.raquo.buildkit.SourceDownloader
-import org.scalajs.linker.interface.ModuleSplitStyle
+import org.scalajs.linker.interface.{ESVersion, ModuleSplitStyle}
 
 import scala.sys.process.Process
 
@@ -95,6 +95,7 @@ lazy val client = project
     ),
     scalaJSLinkerConfig ~= {
       _.withModuleKind(ModuleKind.ESModule)
+        .withESFeatures(_.withESVersion(ESVersion.ES2020)) // Gets us native JS BigInt-s, lokehead regex-es, and other modern browser JS runtime features.
         // .withModuleSplitStyle(
         //   ModuleSplitStyle.SmallModulesFor(List("com.raquo.app")))
     },

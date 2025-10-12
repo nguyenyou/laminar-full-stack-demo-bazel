@@ -17,3 +17,4 @@ metals.sbt
 server/src/main/resources/static/
 
 .DS_Store
+.aider*

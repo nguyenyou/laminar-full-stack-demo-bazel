@@ -22,8 +22,8 @@ object GeneratedSnippets {
   )
   
   val `codesnippets/precompile` = List(
-    CodeSnippet("./build.sbt", "build.sbt", "scala".asInstanceOf[LanguageName], 105, 115, "codesnippets/precompile", List(".settings(", "  precompile := {", "    CodeSnippetsGenerator.generate(", "      rootPath = java.nio.file.Path.of(\".\"),", "      targetPath = java.nio.file.Path.of(\"client/src/main/scala/com/raquo/app/codesnippets/generated\"),", "      packageName = \"com.raquo.app.codesnippets.generated\",", "      objectName = \"GeneratedSnippets\"", "    )", "  },", "  (Compile / compile) := ((Compile / compile) dependsOn precompile).value", ")")),
-    CodeSnippet("./build.sbt", "build.sbt", "scala".asInstanceOf[LanguageName], 132, 132, "codesnippets/precompile", List("lazy val precompile = taskKey[Unit](\"runs our own pre-compile tasks\")")),
+    CodeSnippet("./build.sbt", "build.sbt", "scala".asInstanceOf[LanguageName], 106, 116, "codesnippets/precompile", List(".settings(", "  precompile := {", "    CodeSnippetsGenerator.generate(", "      rootPath = java.nio.file.Path.of(\".\"),", "      targetPath = java.nio.file.Path.of(\"client/src/main/scala/com/raquo/app/codesnippets/generated\"),", "      packageName = \"com.raquo.app.codesnippets.generated\",", "      objectName = \"GeneratedSnippets\"", "    )", "  },", "  (Compile / compile) := ((Compile / compile) dependsOn precompile).value", ")")),
+    CodeSnippet("./build.sbt", "build.sbt", "scala".asInstanceOf[LanguageName], 133, 133, "codesnippets/precompile", List("lazy val precompile = taskKey[Unit](\"runs our own pre-compile tasks\")")),
   )
   
   val `codesnippets/usage` = List(
