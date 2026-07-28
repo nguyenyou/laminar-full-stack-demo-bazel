@@ -31,7 +31,7 @@ object JsApp {
   // It is recognized by its name and type signature,
   // do not rename it.
   def main(args: Array[String]): Unit = {
-    // Scala.js outputs to the browser dev console, not the sbt session
+    // Scala.js outputs to the browser dev console, not the Bazel session
     // Always have the browser dev console open when developing web UIs.
     println("-- Scala.js app start --")
 

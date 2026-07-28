@@ -1,0 +1,29 @@
+load("@rules_scala//scala:scala.bzl", "scala_library")
+load("//tools/scalajs:defs.bzl", "scala_js_library")
+
+filegroup(
+    name = "snippet_sources",
+    srcs = glob(["src/main/scala/**/*.scala"]),
+    visibility = ["//client:__pkg__"],
+)
+
+scala_library(
+    name = "shared_jvm",
+    srcs = glob(["src/main/scala/**/*.scala"]),
+    visibility = ["//visibility:public"],
+    deps = [
+        "@maven//:io_bullet_borer_core_3",
+        "@maven//:io_bullet_borer_derivation_3",
+        "@maven//:org_scala_js_scalajs_stubs_3",
+    ],
+)
+
+scala_js_library(
+    name = "shared_js",
+    srcs = glob(["src/main/scala/**/*.scala"]),
+    visibility = ["//visibility:public"],
+    deps = [
+        "@maven//:io_bullet_borer_core_sjs1_3",
+        "@maven//:io_bullet_borer_derivation_sjs1_3",
+    ],
+)

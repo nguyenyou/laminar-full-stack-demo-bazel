@@ -1,13 +1,8 @@
-import fs from "fs"
-import path from "path"
-import childProcess from "child_process"
+import fs from "node:fs"
+import path from "node:path"
 
-// Note: this script requires source-map-explorer package to be installed globally.
-// npm i -g source-map-explorer
-// npm list -g --depth=0 // see the list of globally installed npm packages
-
-// If calling this script from `npm run sourcemap-report`, and you want to pass
-// arguments to it, you need to use `--`, e.g. `npm run sourcemap-report -- foo.js`
+// If calling this script from `bun run sourcemap-report`, pass extra arguments
+// after `--`, e.g. `bun run sourcemap-report -- --html report.html`.
 
 // -- PARAMS --
 
@@ -38,31 +33,22 @@ function getJsBundleFilePath() {
 
 // -- SCRIPT --
 
-let args = process.argv
-args.shift() // remove path to node.js
-args.shift() // remove this script's name
+const args = process.argv.slice(2)
 
 // If JS file name is not provided, find and inject the bundle JS file path automatically
 const indexOfJsFilename = args.findIndex(arg => arg.toLowerCase().endsWith(".js"))
 if (indexOfJsFilename === -1) {
   args.unshift(getJsBundleFilePath())
-} else if (!fs.existsSync(indexOfJsFilename)) {
+} else if (!fs.existsSync(args[indexOfJsFilename])) {
   console.error(`Error: File ${args[indexOfJsFilename]} does not exist.`)
   process.exit(1)
 }
 
-const command = `source-map-explorer ${args.join(" ")}`
+console.log(`> bunx source-map-explorer ${args.join(" ")}\n`)
 
-console.log("> " + command + "\n")
+const sourceMapExplorer = Bun.spawn(["bunx", "source-map-explorer", ...args], {
+  stdout: "inherit",
+  stderr: "inherit"
+})
 
-childProcess.exec(
-  command,
-  (error, stdout, stderr) => {
-    if (error) {
-      console.error(error)
-      return
-    }
-    console.log(stdout)
-    console.error(stderr)
-  }
-)
+process.exit(await sourceMapExplorer.exited)

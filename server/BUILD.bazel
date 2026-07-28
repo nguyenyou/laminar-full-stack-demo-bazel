@@ -1,0 +1,45 @@
+load("@rules_scala//scala:scala.bzl", "scala_binary")
+
+filegroup(
+    name = "snippet_sources",
+    srcs = glob(["src/main/scala/**/*.scala"]),
+    visibility = ["//client:__pkg__"],
+)
+
+scala_binary(
+    name = "server",
+    srcs = glob(["src/main/scala/**/*.scala"]),
+    main_class = "com.raquo.server.Server",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//shared:shared_jvm",
+        "@maven//:ch_qos_logback_logback_classic",
+        "@maven//:co_fs2_fs2_core_3",
+        "@maven//:co_fs2_fs2_io_3",
+        "@maven//:com_fasterxml_aalto_xml",
+        "@maven//:com_comcast_ip4s_core_3",
+        "@maven//:io_bullet_borer_core_3",
+        "@maven//:org_http4s_http4s_client_3",
+        "@maven//:org_http4s_http4s_core_3",
+        "@maven//:org_http4s_http4s_crypto_3",
+        "@maven//:org_http4s_http4s_dsl_3",
+        "@maven//:org_http4s_http4s_ember_client_3",
+        "@maven//:org_http4s_http4s_ember_server_3",
+        "@maven//:org_http4s_http4s_server_3",
+        "@maven//:org_codehaus_woodstox_stax2_api",
+        "@maven//:org_log4s_log4s_3",
+        "@maven//:org_scodec_scodec_bits_3",
+        "@maven//:org_typelevel_case_insensitive_3",
+        "@maven//:org_typelevel_cats_core_3",
+        "@maven//:org_typelevel_cats_effect_kernel_3",
+        "@maven//:org_typelevel_cats_effect_std_3",
+        "@maven//:org_typelevel_cats_effect_3",
+        "@maven//:org_typelevel_cats_kernel_3",
+        "@maven//:org_typelevel_cats_parse_3",
+        "@maven//:org_typelevel_literally_3",
+        "@maven//:org_typelevel_log4cats_core_3",
+        "@maven//:org_typelevel_log4cats_slf4j_3",
+        "@maven//:org_typelevel_vault_3",
+        "@maven//:ru_tinkoff_phobos_core_3",
+    ],
+)

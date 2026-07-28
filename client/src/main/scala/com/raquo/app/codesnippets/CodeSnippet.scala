@@ -1,6 +1,7 @@
 package com.raquo.app.codesnippets
 
 import com.raquo.laminar.api.L.{*, given}
+import com.raquo.buildinfo.BuildInfo
 import com.raquo.utils.Utils.useImport
 import vendor.highlightjs.hljs
 
@@ -71,7 +72,7 @@ object CodeSnippet {
   }
 
   def githubUrl(snippet: CodeSnippet): String = {
-    "https://github.com/raquo/laminar-full-stack-demo/blob/master/" + snippet.filePath + "#" + lineNumbers(snippet)
+    BuildInfo.githubSourceRoot + snippet.filePath + "#" + lineNumbers(snippet)
   }
 }
 // END[codesnippets/object]

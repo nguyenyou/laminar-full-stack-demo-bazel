@@ -1,6 +1,10 @@
 /dist/
 /client/dist/
 /client/public/assets/shoelace/assets/icons/
+/bazel-bin
+/bazel-out
+/bazel-testlogs
+/bazel-laminar-full-stack-demo-bazel
 
 target/
 node_modules/

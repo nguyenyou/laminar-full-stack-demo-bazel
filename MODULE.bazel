@@ -1,0 +1,65 @@
+module(name = "laminar_full_stack_demo")
+
+bazel_dep(
+    name = "rules_scala",
+    version = "7.2.6",
+)
+bazel_dep(
+    name = "rules_jvm_external",
+    version = "6.8",
+)
+bazel_dep(
+    name = "rules_java",
+    version = "9.1.0",
+)
+
+scala_config = use_extension(
+    "@rules_scala//scala/extensions:config.bzl",
+    "scala_config",
+)
+scala_config.settings(
+    scala_version = "3.5.2",
+)
+
+scala_deps = use_extension(
+    "@rules_scala//scala/extensions:deps.bzl",
+    "scala_deps",
+)
+scala_deps.scala()
+
+maven = use_extension(
+    "@rules_jvm_external//:extensions.bzl",
+    "maven",
+)
+maven.install(
+    artifacts = [
+        "be.doeraene:web-components-ui5_sjs1_3:2.0.0",
+        "ch.qos.logback:logback-classic:1.4.12",
+        "com.raquo:laminar-shoelace_sjs1_3:0.1.0",
+        "com.raquo:laminar_sjs1_3:17.2.1",
+        "com.raquo:waypoint_sjs1_3:10.0.0-M1",
+        "io.bullet:borer-core_3:1.14.0",
+        "io.bullet:borer-core_sjs1_3:1.14.0",
+        "io.bullet:borer-derivation_3:1.14.0",
+        "io.bullet:borer-derivation_sjs1_3:1.14.0",
+        "org.http4s:http4s-dsl_3:0.23.23",
+        "org.http4s:http4s-ember-client_3:0.23.23",
+        "org.http4s:http4s-ember-server_3:0.23.23",
+        "org.scala-js:scalajs-dom_sjs1_3:2.8.1",
+        "org.scala-js:scalajs-library_2.13:1.22.0",
+        "org.scala-js:scalajs-linker_2.13:1.22.0",
+        "org.scala-js:scalajs-stubs_3:1.1.0",
+        "org.typelevel:cats-effect_3:3.5.2",
+        "org.typelevel:log4cats-slf4j_3:2.7.0",
+        "ru.tinkoff:phobos-core_3:0.21.0",
+    ],
+    known_contributing_modules = [
+        "laminar_full_stack_demo",
+        "protobuf",
+    ],
+    lock_file = "//:maven_install.json",
+    repositories = [
+        "https://repo1.maven.org/maven2",
+    ],
+)
+use_repo(maven, "maven")

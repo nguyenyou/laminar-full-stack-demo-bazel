@@ -1,0 +1,52 @@
+load("//tools/scalajs:defs.bzl", "scala_js_binary")
+
+filegroup(
+    name = "snippet_sources",
+    srcs = ["BUILD.bazel"] + glob(
+        [
+            "src/main/scala/**/*.css",
+            "src/main/scala/**/*.less",
+            "src/main/scala/**/*.scala",
+        ],
+        exclude = ["src/main/scala/com/raquo/app/codesnippets/generated/**"],
+    ),
+)
+
+# BEGIN[codesnippets/precompile]
+genrule(
+    name = "generated_snippets",
+    srcs = [
+        ":snippet_sources",
+        "//server:snippet_sources",
+        "//shared:snippet_sources",
+        "//tools/snippets:snippet_sources",
+    ],
+    outs = ["generated/GeneratedSnippets.scala"],
+    cmd = "$(location //tools/snippets:generator) $@ $(SRCS)",
+    tools = ["//tools/snippets:generator"],
+)
+# END[codesnippets/precompile]
+
+scala_js_binary(
+    name = "client_js",
+    srcs = glob(
+        ["src/main/scala/**/*.scala"],
+        exclude = ["src/main/scala/com/raquo/app/codesnippets/generated/**"],
+    ) + [":generated_snippets"],
+    main_class = "com.raquo.app.JsApp",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//shared:shared_js",
+        "@maven//:app_tulz_tuplez_full_light_sjs1_3",
+        "@maven//:be_doeraene_url_dsl_sjs1_3",
+        "@maven//:be_doeraene_web_components_ui5_sjs1_3",
+        "@maven//:com_raquo_airstream_sjs1_3",
+        "@maven//:com_raquo_ew_sjs1_3",
+        "@maven//:com_raquo_laminar_shoelace_sjs1_3",
+        "@maven//:com_raquo_laminar_sjs1_3",
+        "@maven//:com_raquo_waypoint_sjs1_3",
+        "@maven//:io_bullet_borer_core_sjs1_3",
+        "@maven//:io_bullet_borer_derivation_sjs1_3",
+        "@maven//:org_scala_js_scalajs_dom_sjs1_3",
+    ],
+)

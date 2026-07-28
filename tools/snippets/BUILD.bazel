@@ -1,0 +1,19 @@
+load("@rules_scala//scala:scala.bzl", "scala_binary")
+
+filegroup(
+    name = "snippet_sources",
+    srcs = [
+        "BUILD.bazel",
+        "SnippetGenerator.scala",
+    ],
+    visibility = ["//client:__pkg__"],
+)
+
+# BEGIN[compile-time-build.bazel]
+scala_binary(
+    name = "generator",
+    srcs = ["SnippetGenerator.scala"],
+    main_class = "tools.snippets.SnippetGenerator",
+    visibility = ["//client:__pkg__"],
+)
+# END[compile-time-build.bazel]

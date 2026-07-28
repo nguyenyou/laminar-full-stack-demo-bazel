@@ -4,17 +4,17 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "build:scala": "bazel build //client:client_js",
     "dev": "vite",
     "dev-debug": "vite --debug",
     "build": "vite build",
     "build-debug": "vite build --debug",
     "preview": "vite preview",
-    "sourcemap-report": "node sourcemap-report.js"
+    "sourcemap-report": "bun sourcemap-report.js"
   },
   "devDependencies": {
     "@raquo/vite-plugin-glob-resolver": "^0.1.0",
     "@raquo/vite-plugin-import-side-effect": "^0.2.0",
-    "@scala-js/vite-plugin-scalajs": "^1.0.0",
     "less": "^4.2.0",
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-sourcemaps": "^0.6.3",

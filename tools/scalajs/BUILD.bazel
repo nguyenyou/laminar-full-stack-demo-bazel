@@ -1,0 +1,16 @@
+load("@rules_scala//scala:scala.bzl", "scala_binary")
+
+scala_binary(
+    name = "linker",
+    srcs = ["ScalaJSLinkerMain.scala"],
+    main_class = "tools.scalajs.ScalaJSLinkerMain",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@maven//:org_scala_js_scalajs_ir_2_13",
+        "@maven//:org_scala_js_scalajs_linker_2_13",
+        "@maven//:org_scala_js_scalajs_linker_interface_2_13",
+        "@maven//:org_scala_js_scalajs_logging_2_13",
+    ],
+)
+
+exports_files(["defs.bzl"])

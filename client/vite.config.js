@@ -1,5 +1,4 @@
 import {defineConfig} from "vite";
-import scalaJSPlugin from "@scala-js/vite-plugin-scalajs";
 import injectHtmlVarsPlugin from "./vite-plugins/inject-html-vars.js";
 import rollupPluginSourcemaps from "rollup-plugin-sourcemaps";
 import globResolverPlugin from "@raquo/vite-plugin-glob-resolver";
@@ -10,16 +9,37 @@ import path from "path";
 export default defineConfig({
   base: "/",
   publicDir: "public",
+  resolve: {
+    alias: [
+      {
+        find: "@shoelace-style",
+        replacement: path.resolve(__dirname, "node_modules/@shoelace-style")
+      },
+      {
+        find: "@ui5",
+        replacement: path.resolve(__dirname, "node_modules/@ui5")
+      },
+      {
+        find: "chart.js",
+        replacement: path.resolve(__dirname, "node_modules/chart.js")
+      },
+      {
+        find: "chartjs-plugin-datalabels",
+        replacement: path.resolve(__dirname, "node_modules/chartjs-plugin-datalabels")
+      },
+      {
+        find: "highlight.js",
+        replacement: path.resolve(__dirname, "node_modules/highlight.js")
+      }
+    ]
+  },
   plugins: [
-    scalaJSPlugin({
-      cwd: "..", // path to build.sbt
-      projectID: "client" // scala.js project name in build.sbt
-    }),
     globResolverPlugin({
       // See https://github.com/raquo/vite-plugin-glob-resolver
       cwd: __dirname,
       ignore: [
         'node_modules/**',
+        'bazel-*/**',
         'target/**'
       ]
     }),
@@ -58,6 +78,9 @@ export default defineConfig({
   server: {
     port: 3000,
     strictPort: true,
+    fs: {
+      allow: [".."]
+    },
     // host: "0.0.0.0",
     proxy: {
       // Note: we only proxy /api URLs to the server, if you need more,
