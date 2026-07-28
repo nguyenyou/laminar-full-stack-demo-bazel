@@ -36,6 +36,36 @@ bazel-bin/client/client_js.js/main.js
 
 Bazel downloads Scala, Scala.js, and JVM dependencies. Bun manages only the Vite-side JavaScript dependencies.
 
+## Install Bazel on macOS
+
+[Bazelisk](https://bazel.build/install/bazelisk) is the recommended Bazel launcher for macOS. It reads this repository's `.bazelversion` file and automatically downloads Bazel 9.2.0.
+
+Install the Xcode Command Line Tools:
+
+```bash
+xcode-select --install
+```
+
+Install [Homebrew](https://brew.sh/) if it is not already available:
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+Then install Bazelisk:
+
+```bash
+brew install bazelisk
+```
+
+From the project root, verify the installation:
+
+```bash
+bazel --version
+```
+
+The first Bazel command may take a moment while Bazelisk downloads the pinned Bazel release.
+
 ## Development
 
 Install JavaScript dependencies once:
