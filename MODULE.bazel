@@ -18,7 +18,7 @@ scala_config = use_extension(
     "scala_config",
 )
 scala_config.settings(
-    scala_version = "3.5.2",
+    scala_version = "3.8.4",
 )
 
 scala_deps = use_extension(
@@ -45,6 +45,7 @@ maven.install(
         "org.http4s:http4s-dsl_3:0.23.23",
         "org.http4s:http4s-ember-client_3:0.23.23",
         "org.http4s:http4s-ember-server_3:0.23.23",
+        "org.scala-lang:scala3-library_sjs1_3:3.8.4",
         "org.scala-js:scalajs-dom_sjs1_3:2.8.1",
         "org.scala-js:scalajs-library_2.13:1.22.0",
         "org.scala-js:scalajs-linker_2.13:1.22.0",

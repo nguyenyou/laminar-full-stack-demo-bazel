@@ -6,6 +6,7 @@ scala_binary(
     main_class = "tools.scalajs.ScalaJSLinkerMain",
     visibility = ["//visibility:public"],
     deps = [
+        "@rules_scala//src/java/io/bazel/rulesscala/worker",
         "@maven//:org_scala_js_scalajs_ir_2_13",
         "@maven//:org_scala_js_scalajs_linker_2_13",
         "@maven//:org_scala_js_scalajs_linker_interface_2_13",

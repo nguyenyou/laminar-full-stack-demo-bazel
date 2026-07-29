@@ -9,7 +9,15 @@ This is a Bazel port of [raquo/laminar-full-stack-demo](https://github.com/raquo
 ```text
 shared Scala sources
        |
-       +--> //shared:shared_js  --> //client:client_js
+       +--> //shared:shared_js  --> //client:client_js_ir
+       |                                  |
+       |                     +------------+------------+
+       |                     |                         |
+       |                     v                         v
+       |          //client:client_js_dev     //client:client_js_prod
+       |          persistent fast linker     optimized batch linker
+       |                     |                         |
+       |                     +------------+------------+
        |                                  |
        |                                  v
        |                         ESM main.js --> Vite
@@ -20,13 +28,13 @@ shared Scala sources
                                      http4s API
 ```
 
-The client build emits:
+The development client build emits:
 
 ```text
-bazel-bin/client/client_js.js/main.js
+bazel-bin/client/client_js_dev.js/main.js
 ```
 
-`client/index.js` imports that ESM file directly. Vite then resolves JavaScript packages, LESS and CSS imports, serves the development frontend, and proxies `/api` to http4s.
+Vite resolves `scalajs:main.js` to that development output by default. Production packaging points the same import at `client_js_prod.js/main.js`. Vite then resolves JavaScript packages, LESS and CSS imports, serves the development frontend, and proxies `/api` to http4s.
 
 ## Requirements
 
@@ -34,7 +42,7 @@ bazel-bin/client/client_js.js/main.js
 - Bazel or Bazelisk; `.bazelversion` selects Bazel 9.2.0
 - [Bun](https://bun.sh/)
 
-Bazel downloads Scala, Scala.js, and JVM dependencies. Bun manages only the Vite-side JavaScript dependencies.
+Bazel downloads Scala 3.8.4, Scala.js 1.22.0, a hermetic JDK 17 toolchain, and JVM dependencies. Bun manages only the Vite-side JavaScript dependencies.
 
 ## Install Bazel on macOS
 
@@ -79,7 +87,7 @@ cd ..
 Build the Scala.js ESM module:
 
 ```bash
-bazel build //client:client_js
+bazel build //client:client_js_dev
 ```
 
 Start the backend:
@@ -100,16 +108,19 @@ Open [http://localhost:3000](http://localhost:3000). The backend listens on [htt
 After changing Scala client or shared sources, rerun:
 
 ```bash
-bazel build //client:client_js
+bazel build //client:client_js_dev
 ```
 
-Vite notices the updated `main.js`. LESS, CSS, and JavaScript files remain under Vite's normal hot-reload loop.
+The development linker runs as one persistent Bazel worker. It retains the Scala.js IR cache and incremental linker between builds, while disabling optimization for fast iteration. Vite notices the updated `main.js`. LESS, CSS, and JavaScript files remain under Vite's normal hot-reload loop.
 
 ## Useful Bazel targets
 
 ```bash
-# Build the Scala.js client
-bazel build //client:client_js
+# Fast development link
+bazel build //client:client_js_dev
+
+# Optimized production link
+bazel build //client:client_js_prod
 
 # Build the backend launcher
 bazel build //server:server
@@ -125,6 +136,11 @@ The shared sources are intentionally compiled twice:
 
 - `//shared:shared_js` produces Scala.js IR for the browser.
 - `//shared:shared_jvm` produces JVM bytecode for the server.
+
+The client IR is compiled once as `//client:client_js_ir`. Both linker targets consume it:
+
+- `//client:client_js_dev` disables optimization and reuses a persistent linker and IR cache.
+- `//client:client_js_prod` enables optimization and performs a fresh batch link.
 
 ## Compile-time code snippets
 

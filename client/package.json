@@ -4,7 +4,8 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "build:scala": "bazel build //client:client_js",
+    "build:scala": "bazel build //client:client_js_dev",
+    "build:scala:prod": "bazel build //client:client_js_prod",
     "dev": "vite",
     "dev-debug": "vite --debug",
     "build": "vite build",

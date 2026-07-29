@@ -6,11 +6,20 @@ import importSideEffectPlugin from "@raquo/vite-plugin-import-side-effect";
 import rollupCopyPlugin from 'rollup-plugin-copy'
 import path from "path";
 
+const scalaJsModule = path.resolve(
+  __dirname,
+  process.env.SCALA_JS_MODULE ?? "../bazel-bin/client/client_js_dev.js/main.js"
+);
+
 export default defineConfig({
   base: "/",
   publicDir: "public",
   resolve: {
     alias: [
+      {
+        find: "scalajs:main.js",
+        replacement: scalaJsModule
+      },
       {
         find: "@shoelace-style",
         replacement: path.resolve(__dirname, "node_modules/@shoelace-style")

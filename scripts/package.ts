@@ -14,9 +14,15 @@ const bazelStartupArgs = (process.env.BAZEL_STARTUP_ARGS ?? "")
   .split(/\s+/)
   .filter(argument => argument.length > 0)
 
-function run(command: string, args: string[], cwd: string): void {
+function run(
+  command: string,
+  args: string[],
+  cwd: string,
+  env: Record<string, string | undefined> = process.env
+): void {
   const process = Bun.spawnSync([command, ...args], {
     cwd,
+    env,
     stdout: "inherit",
     stderr: "inherit"
   })
@@ -28,11 +34,22 @@ function run(command: string, args: string[], cwd: string): void {
 
 run(
   bazel,
-  [...bazelStartupArgs, "build", "//client:client_js", "//server:server_deploy.jar"],
+  [...bazelStartupArgs, "build", "//client:client_js_prod", "//server:server_deploy.jar"],
   repositoryRoot
 )
 run("bun", ["install", "--frozen-lockfile"], clientDirectory)
-run("bun", ["run", "build"], clientDirectory)
+run(
+  "bun",
+  ["run", "build"],
+  clientDirectory,
+  {
+    ...process.env,
+    SCALA_JS_MODULE: path.join(
+      repositoryRoot,
+      "bazel-bin/client/client_js_prod.js/main.js"
+    )
+  }
+)
 
 await rm(distributionDirectory, {recursive: true, force: true})
 await mkdir(path.join(stagingDirectory, "static"), {recursive: true})
